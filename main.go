@@ -5,7 +5,6 @@ import (
 	"brifast-service-login/handler"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -46,11 +45,6 @@ func main() {
 	
 	api := router.Group("api/v1")
 	api.POST("/login", authHandler.Login)
-	api.GET("/testing", func(c *gin.Context) {
-		responseData := gin.H{"message": "Hello, world"}
-
-		c.JSON(http.StatusOK, responseData)
-	})
 
 	router.Run()
 
