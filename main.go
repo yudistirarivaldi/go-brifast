@@ -1,10 +1,14 @@
 package main
 
 import (
+	"brifast-service-login/auth"
+	"brifast-service-login/handler"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -12,8 +16,8 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
+	load := godotenv.Load()
+	if load != nil {
 		fmt.Println("Error loading .env file")
 	}
 
@@ -25,14 +29,23 @@ func main() {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	_, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	// fmt.Println("Connection to Database Successful")
+	authRepository := auth.NewRepository(db)
 
+	authService := auth.NewService(authRepository)
 
+	authHandler := handler.NewAuthHandler(authService)
+
+	router := gin.Default()
+	router.Use(cors.Default())
 	
+	api := router.Group("api/v1")
+	api.POST("/login", authHandler.Login)
+
+	router.Run()
+
 }
